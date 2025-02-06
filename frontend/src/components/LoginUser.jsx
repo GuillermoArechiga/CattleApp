@@ -1,45 +1,53 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState } from "react";
+import axios from "axios";
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
   const [error, setError] = useState(null);
+
+  console.log("Credentials to send:", credentials);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setCredentials((prevData) => ({
       ...prevData,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
+  
+    const query = `
+      mutation {
+        loginUser(email: "${credentials.email}", password: "${credentials.password.trim()}") {
+          token
+        }
+      }
+    `;
+    console.log("GraphQL Request Query:", query); // Log the query
+  
     try {
-      const response = await axios.post('/graphql', {
-        query: `
-          mutation {
-            loginUser(email: "${credentials.email}", password: "${credentials.password}") {
-              token
-            }
-          }
-        `
+      const response = await axios.post("http://localhost:4000/graphql", {
+        query: query,
       });
-
+  
+      console.log("Response from server:", response.data); // Log the server response
+  
       if (response.data.errors) {
-        setError('Invalid email or password');
+        setError("Invalid email or password");
         return;
       }
-
-      localStorage.setItem('token', response.data.data.loginUser.token); // Store JWT in localStorage
-      alert('Login successful!');
+  
+      localStorage.setItem("token", response.data.data.loginUser.token); // Store JWT in localStorage
+      alert("Login successful!");
       setError(null); // Reset error on successful login
     } catch (error) {
-      console.error('Login error', error);
-      setError('Login failed. Please try again later.');
+      console.error("Login error", error);
+      setError("Login failed. Please try again later.");
     }
   };
 
@@ -64,7 +72,8 @@ const Login = () => {
         />
         <button type="submit">Login</button>
       </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>} {/* Show error message */}
+      {error && <p style={{ color: "red" }}>{error}</p>}{" "}
+      {/* Show error message */}
     </div>
   );
 };

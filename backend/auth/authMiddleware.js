@@ -1,22 +1,23 @@
-import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from './config.js'; // Ensure you have this secret set
+import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "./config.js";
 
-const authenticate = async (ctx, next) => {
-  const token = ctx.headers.authorization || ctx.cookies.get('token'); 
+// Middleware to check if the user is authenticated
+export const authenticate = (ctx, next) => {
+  const token = ctx.headers.authorization || ctx.cookies.get("token");
 
   if (!token) {
-    ctx.throw(401, 'Authentication token missing');
+    ctx.status = 401; // Unauthorized
+    ctx.body = { error: "Authentication token required" };
+    return;
   }
 
   try {
-    // Verify the JWT token
-    const decoded = jwt.verify(token, JWT_SECRET);
-    // Attach the user information to the request context
-    ctx.state.user = decoded;
-    await next();
-  } catch (error) {
-    ctx.throw(401, 'Invalid or expired token');
+    // Verify the token
+    const user = jwt.verify(token, JWT_SECRET);
+    ctx.state.user = user; 
+    return next(); 
+  } catch (err) {
+    ctx.status = 401; // Unauthorized
+    ctx.body = { error: "Invalid or expired token" };
   }
 };
-
-export default authenticate;

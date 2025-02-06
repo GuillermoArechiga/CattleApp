@@ -1,21 +1,37 @@
 import Koa from "koa";
-import koaRouter from "koa-router";
 import koaBody from "koa-body";
-import cors from "@koa/cors"; 
+import cors from "@koa/cors";
+import { authenticate } from "./auth/authMiddleware.js"; // Import the authenticate middleware
+import { connectDB } from "./database/config.js";
 import { ApolloServer } from "apollo-server-koa";
-import jwt from "jsonwebtoken"; // Import jwt
+
+import bcrypt from "bcryptjs";
+
+const password = "memo"; // The password you entered during login
+const storedHash =
+  "$2a$10$aK.Oig8S0f1IH0b1R7Y8s.KeXMjbOf5uxSosQYQkKaCOAa/Fe.5xW"; // The hash from MongoDB
+
+bcrypt.compare(password, storedHash, (err, result) => {
+  if (err) {
+    console.error("Error comparing passwords:", err);
+    return;
+  }
+  console.log("Password match result:", result);
+});
+
+// Import routes from the routes file
+import router from "./routes.js";
+
+// Import typeDefs and resolvers
 import typeDefs from "./graphql/schema.js";
 import resolvers from "./graphql/resolvers.js";
-import { connectDB } from "./database/config.js";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret"; // Ensure JWT secret is available
 
 const app = new Koa();
-const router = new koaRouter();
 
 // Enable CORS for frontend requests
-app.use(cors());
+app.use(cors({ origin: "http://localhost:5173" }));
 
+// Create ApolloServer instance
 const server = new ApolloServer({
   typeDefs,
   resolvers,
@@ -31,22 +47,34 @@ const server = new ApolloServer({
       }
     }
 
-    return { user }; // Authentication is optional
+    return { user }; // Authentication is optional for GraphQL
   },
 });
 
 const startServer = async () => {
   await connectDB();
-  await server.start(); // ✅ Start Apollo Server first!
+  await server.start();
 
-  app.use(koaBody()); // ✅ Middleware after server start
-  app.use(router.routes()).use(router.allowedMethods());
+  app.use(koaBody());
 
-  // ✅ Register GraphQL middleware after server start
   router.post("/graphql", server.getMiddleware());
 
+  router.use(authenticate); // Only apply this middleware to the routes that need auth
+
+  // Example of a protected route
+  router.get("/protected", (ctx) => {
+    ctx.body = { message: "This is a protected route" };
+  });
+
+  // Public routes: no authentication required
+  router.get("/public", (ctx) => {
+    ctx.body = { message: "This is a public route" };
+  });
+
+  app.use(router.routes()).use(router.allowedMethods()); // Register routes
+
   app.listen(4000, () => {
-    console.log("🚀 Server running at http://localhost:4000/graphql");
+    console.log("🚀 Server running at http://localhost:4000");
   });
 };
 

@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import User from "../database/models/User.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret"; // Store this secret in an environment variable for security.
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
 const resolvers = {
   Query: {
@@ -26,37 +26,37 @@ const resolvers = {
         phone,
         password: hashedPassword,
       });
+      
       await newUser.save();
 
       return newUser;
     },
 
     loginUser: async (_, { email, password }) => {
-      const user = await User.findOne({ email });
-      if (!user) {
-        throw new Error("User not found");
-      }
+      console.log("Trying to find user with email:", email); // Debugging line
 
-      // Compare the provided password with the stored hashed password
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
+      // Check if user exists
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        console.log("User not found:", email); // Debugging line
         throw new Error("Invalid credentials");
       }
 
-      // Create a JWT token and send it back to the client
-      const token = jwt.sign(
-        { userId: user._id, email: user.email },
-        JWT_SECRET,
-        { expiresIn: "1h" } // Token expires in 1 hour
-      );
+      const isMatch = await bcrypt.compare(password, user.password);
+      console.log("Password match:", isMatch);
 
-      // Exclude password before sending user info back
-      user.password = undefined;
+      if (!isMatch) {
+        console.log("Password mismatch for user:", email); // Debugging line
+        throw new Error("Invalid credentials");
+      }
 
-      return {
-        token,
-        user, // Return the user details along with the token
-      };
+      // If credentials are valid, generate a token
+      const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
+        expiresIn: "1h",
+      });
+      console.log("Generated token:", token); // Debugging line
+      return { token };
     },
   },
 };
