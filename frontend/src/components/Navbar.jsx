@@ -19,13 +19,7 @@ const Navbar = () => {
   const { logout } = useAuth();
 
   // Fetch user info using the GET_ME query
-  const { data, loading, error, refetch } = useQuery(GET_ME, {
-    context: {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`, // Assuming the token is in localStorage
-      },
-    },
-  });
+  const { data, loading, error, refetch } = useQuery(GET_ME);
 
   useEffect(() => {
     // Refetch user data if the token changes (user logs in or out)
