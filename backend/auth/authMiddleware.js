@@ -1,29 +1,26 @@
-import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "./config.js";
+// authMiddleware.js
+import jwt from "jsonwebtoken"; // Import JWT
+import { JWT_SECRET } from "./config.js"; // Import your JWT secret
 
-// Middleware to check if the user is authenticated
-export const authenticate = async (ctx, next) => {
+// Middleware to verify JWT token
+export const verifyToken = async (ctx, next) => {
   let token = ctx.headers.authorization || ctx.cookies.get("token");
 
   if (!token) {
-    ctx.status = 401; // Unauthorized
-    ctx.body = { error: "Authentication token required" };
-    return;
+    ctx.throw(401, "Authentication token missing");
   }
 
-  // If the token is in the Authorization header, remove "Bearer "
+  // Remove 'Bearer ' prefix if it exists
   if (token.startsWith("Bearer ")) {
     token = token.slice(7).trim();
   }
 
   try {
-    // Verify the token
-    const user = jwt.verify(token, JWT_SECRET);
-    ctx.state.user = user; // Attach user data to ctx.state
-
-    await next(); // Continue processing the request
+    const decoded = jwt.verify(token, JWT_SECRET); // Verify token
+    ctx.state.user = decoded; // Attach decoded user to context state
+    await next(); // Call the next middleware or route handler
   } catch (err) {
-    ctx.status = 401; // Unauthorized
-    ctx.body = { error: "Invalid or expired token" };
+    console.error("Token verification failed:", err.message); // Log the error
+    ctx.throw(401, "Invalid or expired token");
   }
 };

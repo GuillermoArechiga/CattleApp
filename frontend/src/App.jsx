@@ -15,6 +15,7 @@ const App = () => {
     const checkAuth = async () => {
       const token = localStorage.getItem("token"); // Get token from localStorage
 
+      console.log("tokenAuth:", token)
       if (token) {
         try {
           const response = await fetch("http://localhost:4000/verify-token", {
@@ -24,6 +25,8 @@ const App = () => {
               "Content-Type": "application/json",
             },
           });
+
+          console.log(response)
 
           if (response.ok) {
             setIsAuthenticated(true); // User is authenticated

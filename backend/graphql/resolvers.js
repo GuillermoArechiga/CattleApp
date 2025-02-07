@@ -6,7 +6,10 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
 const resolvers = {
   Query: {
-    users: async () => {
+    users: async (_, __, { user }) => {
+      if (!user) {
+        throw new Error("Unauthorized");
+      }
       return await User.find();
     },
   },
@@ -33,9 +36,6 @@ const resolvers = {
     },
 
     loginUser: async (_, { email, password }) => {
-
-
-      // Check if user exists
       const user = await User.findOne({ email });
 
       if (!user) {
@@ -43,16 +43,28 @@ const resolvers = {
       }
 
       const isMatch = await bcrypt.compare(password, user.password);
-
       if (!isMatch) {
         throw new Error("Invalid credentials");
       }
 
-      // If credentials are valid, generate a token
-      const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
-        expiresIn: "1h",
-      });
-      return { token };
+      // Generate JWT token
+      const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        JWT_SECRET,
+        {
+          expiresIn: "1h",
+        }
+      );
+
+      return {
+        token,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+        },
+      };
     },
   },
 };

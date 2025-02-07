@@ -1,39 +1,29 @@
 import Koa from "koa";
 import koaBody from "koa-body";
 import cors from "@koa/cors";
-import { authenticate } from "./auth/authMiddleware.js"; // Import the authenticate middleware
 import { connectDB } from "./database/config.js";
 import { ApolloServer } from "apollo-server-koa";
-
-// Import routes from the routes file
-import router from "./routes.js";
-
-// Import typeDefs and resolvers
-import typeDefs from "./graphql/schema.js";
+import router from "./routes.js"; 
+import typeDefs from "./graphql/schema.js"; 
+import { verifyToken } from "./auth/authMiddleware.js"; 
 import resolvers from "./graphql/resolvers.js";
 
 const app = new Koa();
 
 // Enable CORS for frontend requests
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 
 // Create ApolloServer instance
 const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: ({ ctx }) => {
-    const token = ctx.headers.authorization || ctx.cookies.get("token");
+    const token = ctx.request.headers.authorization || ctx.cookies.get("token");
 
-    let user = null;
-    if (token) {
-      try {
-        user = jwt.verify(token, JWT_SECRET);
-      } catch (err) {
-        console.error("Invalid token:", err.message);
-      }
-    }
+    // Use the reusable verifyTokenForGraphQL function to decode the token
+    const user = verifyToken(token);
 
-    return { user }; // Authentication is optional for GraphQL
+    return { user }; // Pass user (or null) into the GraphQL context
   },
 });
 
@@ -43,21 +33,11 @@ const startServer = async () => {
 
   app.use(koaBody());
 
-  router.post("/graphql", server.getMiddleware());
+  // Register Koa routes before Apollo to avoid blocking them
+  app.use(router.routes()).use(router.allowedMethods());
 
-  router.use(authenticate); // Only apply this middleware to the routes that need auth
-
-  // Example of a protected route
-  router.get("/protected", (ctx) => {
-    ctx.body = { message: "This is a protected route" };
-  });
-
-  // Public routes: no authentication required
-  router.get("/public", (ctx) => {
-    ctx.body = { message: "This is a public route" };
-  });
-
-  app.use(router.routes()).use(router.allowedMethods()); // Register routes
+  // Apply Apollo middleware AFTER Koa routes
+  app.use(server.getMiddleware());
 
   app.listen(4000, () => {
     console.log("🚀 Server running at http://localhost:4000");
