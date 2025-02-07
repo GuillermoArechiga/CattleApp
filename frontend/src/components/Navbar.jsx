@@ -63,7 +63,7 @@ const Navbar = () => {
               data &&
               data.me && (
                 <li>
-                  <span className="text-white">{`Hello, ${data.me.name}`}</span>
+                  <span className="text-white">{`Hi, ${data.me.name}`}</span>
                 </li>
               )
             )}
