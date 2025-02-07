@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "./authContext";
 import { useQuery, gql } from "@apollo/client";
 
@@ -20,13 +19,20 @@ const Navbar = () => {
   const { logout } = useAuth();
 
   // Fetch user info using the GET_ME query
-  const { data, loading, error } = useQuery(GET_ME, {
+  const { data, loading, error, refetch } = useQuery(GET_ME, {
     context: {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`, // Assuming the token is in localStorage
       },
     },
   });
+
+  useEffect(() => {
+    // Refetch user data if the token changes (user logs in or out)
+    if (localStorage.getItem("token")) {
+      refetch(); // Trigger the refetch to reload user data
+    }
+  }, [localStorage.getItem("token"), refetch]);
 
   // Toggle the mobile menu visibility
   const toggleMenu = () => {
@@ -44,27 +50,6 @@ const Navbar = () => {
         {/* Navigation */}
         <nav>
           <ul className="hidden md:flex space-x-6 items-center">
-            <li>
-              <Link to="#home" className="hover:text-gray-300 transition">
-                Home
-              </Link>
-            </li>
-            <li>
-              <Link to="#about" className="hover:text-gray-300 transition">
-                About
-              </Link>
-            </li>
-            <li>
-              <Link to="#services" className="hover:text-gray-300 transition">
-                Services
-              </Link>
-            </li>
-            <li>
-              <Link to="#contact" className="hover:text-gray-300 transition">
-                Contact
-              </Link>
-            </li>
-
             {/* Show user info if available */}
             {loading ? (
               <li>
@@ -121,7 +106,7 @@ const Navbar = () => {
 
         {/* Mobile Menu (hidden by default, shown when `isMenuOpen` is true) */}
         {isMenuOpen && (
-          <div className="md:hidden fixed inset-0 bg-blue-600 bg-opacity-90 text-white flex flex-col space-y-6 p-6">
+          <div className="md:hidden fixed inset-0 bg-blue-600 bg-opacity-90 text-white flex flex-col space-y-6 p-6 z-50">
             {/* Close Button */}
             <button
               className="text-white text-3xl absolute top-6 right-6"
@@ -131,32 +116,29 @@ const Navbar = () => {
             </button>
 
             {/* Menu Links */}
-            <ul className="flex flex-col text-3xl space-y-4">
-              <li>
-                <Link to="#home" className="hover:text-gray-300 transition">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link to="#about" className="hover:text-gray-300 transition">
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link to="#services" className="hover:text-gray-300 transition">
-                  Services
-                </Link>
-              </li>
-              <li>
-                <Link to="#contact" className="hover:text-gray-300 transition">
-                  Contact
-                </Link>
-              </li>
+            <ul className="flex flex-col text-2xl text-center space-y-4">
+              {/* Show user info if available */}
+              {loading ? (
+                <li>
+                  <span className="text-white">Loading...</span>
+                </li>
+              ) : error ? (
+                <li>
+                  <span className="text-white">Error loading user info</span>
+                </li>
+              ) : (
+                data &&
+                data.me && (
+                  <li>
+                    <button className="text-white">{`Hello, ${data.me.name}`}</button>
+                  </li>
+                )
+              )}
 
               {/* Mobile Log out option */}
               <button
                 onClick={logout}
-                className="hover:text-gray-300 transition"
+                className="px-4 py-2 mt-10 text-sm font-medium text-white bg-red-500 rounded-xl hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
                 Log Out
               </button>
