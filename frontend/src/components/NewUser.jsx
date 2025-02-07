@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, gql } from "@apollo/client";
 
 // GraphQL Mutation to Register User
@@ -24,6 +25,7 @@ const REGISTER_USER = gql`
 `;
 
 const NewUserForm = () => {
+  const navigate = useNavigate(); 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -36,6 +38,7 @@ const NewUserForm = () => {
     onCompleted: () => {
       setMessage("User created successfully!");
       setFormData({ name: "", email: "", phone: "", password: "" }); // Reset form
+      navigate("/login"); 
     },
     onError: (err) => {
       console.error("Error creating user:", err);
