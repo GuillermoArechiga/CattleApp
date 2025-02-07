@@ -1,40 +1,40 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useAuth } from "./authContext";
 
 const Login = () => {
-  const [credentials, setCredentials] = useState({
-    email: "",
-    password: "",
-  });
+  const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [error, setError] = useState(null);
+  const { login } = useAuth(); // Get login function from context
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setCredentials((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setCredentials((prevData) => ({ ...prevData, [name]: value }));
   };
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
 
+    const query = `
+      mutation {
+        loginUser(email: "${credentials.email}", password: "${credentials.password.trim()}") {
+          token
+        }
+      }
+    `;
+
     try {
-      // Send POST request to /login route
-      const response = await axios.post("http://localhost:4000/login", credentials, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const response = await axios.post("http://localhost:4000/graphql", {
+        query,
       });
 
-      // Check if response contains a token
-      if (response.data.token) {
-        localStorage.setItem("token", response.data.token); // Store JWT in localStorage
-        alert("Login successful!");
-        setError(null); // Reset error on successful login
-      } else {
-        setError("Login failed. Invalid email or password.");
+      if (response.data.errors) {
+        setError("Invalid email or password");
+        return;
       }
+
+      const token = response.data.data.loginUser.token;
+      login(token); // Call login function from AuthContext
     } catch (error) {
       console.error("Login error", error);
       setError("Login failed. Please try again later.");
@@ -44,26 +44,11 @@ const Login = () => {
   return (
     <div>
       <form onSubmit={handleLoginSubmit}>
-        <input
-          type="email"
-          name="email"
-          value={credentials.email}
-          onChange={handleInputChange}
-          placeholder="Email"
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          value={credentials.password}
-          onChange={handleInputChange}
-          placeholder="Password"
-          required
-        />
+        <input type="email" name="email" value={credentials.email} onChange={handleInputChange} placeholder="Email" required />
+        <input type="password" name="password" value={credentials.password} onChange={handleInputChange} placeholder="Password" required />
         <button type="submit">Login</button>
       </form>
-      {error && <p style={{ color: "red" }}>{error}</p>}{" "}
-      {/* Show error message */}
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 };

@@ -1,22 +1,15 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useAuth } from "./authContext";
+
 
 const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // Track if menu is open or closed
-  const navigate = useNavigate(); // Hook to navigate programmatically
+  const [isMenuOpen, setIsMenuOpen] = useState(false); 
+  const { logout } = useAuth();
 
   // Toggle the mobile menu visibility
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
-  };
-
-  // Logout function
-  const logout = () => {
-    // Clear user authentication data (e.g., token from localStorage or cookies)
-    localStorage.removeItem("token"); // or cookies.remove('authToken');
-    
-    // Optionally, redirect to the home page or login page
-    navigate("/login"); // Redirect to login page (modify this as per your routes)
   };
 
   return (
