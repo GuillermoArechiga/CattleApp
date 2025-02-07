@@ -1,10 +1,32 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "./authContext";
+import { useQuery, gql } from "@apollo/client";
+
+// Define the query to fetch the user info (me)
+const GET_ME = gql`
+  query GetMe {
+    me {
+      id
+      name
+      email
+      phone
+    }
+  }
+`;
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { logout } = useAuth();
+
+  // Fetch user info using the GET_ME query
+  const { data, loading, error } = useQuery(GET_ME, {
+    context: {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`, // Assuming the token is in localStorage
+      },
+    },
+  });
 
   // Toggle the mobile menu visibility
   const toggleMenu = () => {
@@ -42,8 +64,27 @@ const Navbar = () => {
                 Contact
               </Link>
             </li>
+
+            {/* Show user info if available */}
+            {loading ? (
+              <li>
+                <span className="text-white">Loading...</span>
+              </li>
+            ) : error ? (
+              <li>
+                <span className="text-white">Error loading user info</span>
+              </li>
+            ) : (
+              data &&
+              data.me && (
+                <li>
+                  <span className="text-white">{`Hello, ${data.me.name}`}</span>
+                </li>
+              )
+            )}
+
+            {/* Log out option */}
             <li>
-              {/* Log out option */}
               <button
                 onClick={logout}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-xl hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
@@ -111,15 +152,14 @@ const Navbar = () => {
                   Contact
                 </Link>
               </li>
-              <li>
-                {/* Mobile Log out option */}
-                <button
-                  onClick={logout}
-                  className="hover:text-gray-300 transition"
-                >
-                  Log Out
-                </button>
-              </li>
+
+              {/* Mobile Log out option */}
+              <button
+                onClick={logout}
+                className="hover:text-gray-300 transition"
+              >
+                Log Out
+              </button>
             </ul>
           </div>
         )}

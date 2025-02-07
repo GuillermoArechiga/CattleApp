@@ -6,18 +6,36 @@ import { ApolloServer } from "apollo-server-koa";
 import router from "./routes.js"; 
 import typeDefs from "./graphql/schema.js"; 
 import resolvers from "./graphql/resolvers.js";
+import jwt from "jsonwebtoken";
 
 const app = new Koa();
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+
+// Middleware to parse JWT token
+app.use(async (ctx, next) => {
+  const token = ctx.headers.authorization?.split(" ")[1]; // Get token from Authorization header
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET); // Verify and decode the token
+      ctx.state.user = { id: decoded.userId, email: decoded.email }; // Attach user to context
+    } catch (err) {
+      console.error("Token is invalid or expired", err);
+      ctx.state.user = null; // If token is invalid, set user to null
+    }
+  }
+
+  await next(); // Proceed with request
+});
 
 // Enable CORS for frontend requests
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors({ origin: "*" }));
 
 // Create ApolloServer instance
 const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: ({ ctx }) => {
-    // The user will be available in ctx.state if the token is verified
     const user = ctx.state.user || null;
     return { user }; // Pass user into the GraphQL context
   },
