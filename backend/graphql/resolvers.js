@@ -13,7 +13,6 @@ const resolvers = {
       return await User.find();
     },
     me: async (_, __, { user }) => {
-      console.log("User from context:", user); // Debugging line
       if (!user) {
         throw new Error("Unauthorized");
       }
