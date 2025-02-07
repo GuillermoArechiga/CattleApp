@@ -8,8 +8,6 @@ const Login = () => {
   });
   const [error, setError] = useState(null);
 
-  console.log("Credentials to send:", credentials);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setCredentials((prevData) => ({
@@ -27,16 +25,12 @@ const Login = () => {
           token
         }
       }
-    `;
-    console.log("GraphQL Request Query:", query); // Log the query
-  
+    `;  
     try {
       const response = await axios.post("http://localhost:4000/graphql", {
         query: query,
       });
-  
-      console.log("Response from server:", response.data); // Log the server response
-  
+    
       if (response.data.errors) {
         setError("Invalid email or password");
         return;

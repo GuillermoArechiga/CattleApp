@@ -5,20 +5,6 @@ import { authenticate } from "./auth/authMiddleware.js"; // Import the authentic
 import { connectDB } from "./database/config.js";
 import { ApolloServer } from "apollo-server-koa";
 
-import bcrypt from "bcryptjs";
-
-const password = "memo"; // The password you entered during login
-const storedHash =
-  "$2a$10$aK.Oig8S0f1IH0b1R7Y8s.KeXMjbOf5uxSosQYQkKaCOAa/Fe.5xW"; // The hash from MongoDB
-
-bcrypt.compare(password, storedHash, (err, result) => {
-  if (err) {
-    console.error("Error comparing passwords:", err);
-    return;
-  }
-  console.log("Password match result:", result);
-});
-
 // Import routes from the routes file
 import router from "./routes.js";
 

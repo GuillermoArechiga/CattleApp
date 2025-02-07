@@ -9,20 +9,23 @@ import Home from "./components/Home";
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  console.log(isAuthenticated);
+
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token"); // Get token from localStorage
+
       if (token) {
         try {
           const response = await fetch("http://localhost:4000/verify-token", {
             method: "GET",
             headers: {
-              "Authorization": `Bearer ${token}`,
+              Authorization: `Bearer ${token}`, // Send token in Authorization header
+              "Content-Type": "application/json",
             },
           });
 
           if (response.ok) {
-            const data = await response.json();
             setIsAuthenticated(true); // User is authenticated
           } else {
             setIsAuthenticated(false); // Token is invalid
@@ -36,7 +39,7 @@ const App = () => {
       }
     };
 
-    checkAuth(); // Check the token validity when app loads
+    checkAuth();
   }, []);
 
   return (
@@ -50,7 +53,10 @@ const App = () => {
               path="/register"
               element={isAuthenticated ? <Navigate to="/" /> : <NewUserForm />}
             />
-            <Route path="/login" element={<Login />} />
+            <Route
+              path="/login"
+              element={isAuthenticated ? <Navigate to="/" /> : <Login />}
+            />
             <Route
               path="/"
               element={isAuthenticated ? <Home /> : <Navigate to="/login" />}

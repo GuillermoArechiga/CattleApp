@@ -26,28 +26,25 @@ const resolvers = {
         phone,
         password: hashedPassword,
       });
-      
+
       await newUser.save();
 
       return newUser;
     },
 
     loginUser: async (_, { email, password }) => {
-      console.log("Trying to find user with email:", email); // Debugging line
+
 
       // Check if user exists
       const user = await User.findOne({ email });
 
       if (!user) {
-        console.log("User not found:", email); // Debugging line
         throw new Error("Invalid credentials");
       }
 
       const isMatch = await bcrypt.compare(password, user.password);
-      console.log("Password match:", isMatch);
 
       if (!isMatch) {
-        console.log("Password mismatch for user:", email); // Debugging line
         throw new Error("Invalid credentials");
       }
 
@@ -55,7 +52,6 @@ const resolvers = {
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
         expiresIn: "1h",
       });
-      console.log("Generated token:", token); // Debugging line
       return { token };
     },
   },
