@@ -18,27 +18,23 @@ const Login = () => {
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
-  
-    const query = `
-      mutation {
-        loginUser(email: "${credentials.email}", password: "${credentials.password.trim()}") {
-          token
-        }
-      }
-    `;  
+
     try {
-      const response = await axios.post("http://localhost:4000/graphql", {
-        query: query,
+      // Send POST request to /login route
+      const response = await axios.post("http://localhost:4000/login", credentials, {
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
-    
-      if (response.data.errors) {
-        setError("Invalid email or password");
-        return;
+
+      // Check if response contains a token
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token); // Store JWT in localStorage
+        alert("Login successful!");
+        setError(null); // Reset error on successful login
+      } else {
+        setError("Login failed. Invalid email or password.");
       }
-  
-      localStorage.setItem("token", response.data.data.loginUser.token); // Store JWT in localStorage
-      alert("Login successful!");
-      setError(null); // Reset error on successful login
     } catch (error) {
       console.error("Login error", error);
       setError("Login failed. Please try again later.");

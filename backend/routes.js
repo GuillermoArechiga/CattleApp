@@ -1,7 +1,10 @@
 import koaRouter from "koa-router";
-import { verifyToken } from "./auth/authMiddleware.js";
+import { verifyToken, login } from "./auth/authMiddleware.js";
 
 const router = new koaRouter();
+
+// Login route - to authenticate and return JWT token
+router.post("/login", login);
 
 // Token verification route - for checking if token is valid
 router.get("/verify-token", verifyToken, (ctx) => {
@@ -10,5 +13,4 @@ router.get("/verify-token", verifyToken, (ctx) => {
   console.log("Decoded user:", ctx.state.user); // Log the decoded user
 });
 
-// Export the router for use in the main server
 export default router;

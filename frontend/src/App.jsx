@@ -9,13 +9,11 @@ import Home from "./components/Home";
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  console.log(isAuthenticated);
-
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem("token"); // Get token from localStorage
 
-      console.log("tokenAuth:", token)
+      console.log("tokenAuth:", token);
       if (token) {
         try {
           const response = await fetch("http://localhost:4000/verify-token", {
@@ -25,8 +23,6 @@ const App = () => {
               "Content-Type": "application/json",
             },
           });
-
-          console.log(response)
 
           if (response.ok) {
             setIsAuthenticated(true); // User is authenticated
@@ -49,8 +45,6 @@ const App = () => {
     <ApolloProvider client={client}>
       <BrowserRouter>
         <div className="App">
-          <h1>GraphQL User Form</h1>
-
           <Routes>
             <Route
               path="/register"

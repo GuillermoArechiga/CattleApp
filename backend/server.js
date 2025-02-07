@@ -5,7 +5,6 @@ import { connectDB } from "./database/config.js";
 import { ApolloServer } from "apollo-server-koa";
 import router from "./routes.js"; 
 import typeDefs from "./graphql/schema.js"; 
-import { verifyToken } from "./auth/authMiddleware.js"; 
 import resolvers from "./graphql/resolvers.js";
 
 const app = new Koa();
@@ -18,12 +17,9 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: ({ ctx }) => {
-    const token = ctx.request.headers.authorization || ctx.cookies.get("token");
-
-    // Use the reusable verifyTokenForGraphQL function to decode the token
-    const user = verifyToken(token);
-
-    return { user }; // Pass user (or null) into the GraphQL context
+    // The user will be available in ctx.state if the token is verified
+    const user = ctx.state.user || null;
+    return { user }; // Pass user into the GraphQL context
   },
 });
 
