@@ -9,7 +9,11 @@ import resolvers from "./graphql/resolvers.js";
 import jwt from "jsonwebtoken";
 
 const app = new Koa();
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+
+if (!process.env.JWT_SECRET) {
+  throw new Error("Missing JWT_SECRET! Set it in your environment variables.");
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // Middleware to parse JWT token
 app.use(async (ctx, next) => {
