@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "./authContext";
 
-
 const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false); 
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { logout } = useAuth();
 
   // Toggle the mobile menu visibility
@@ -22,7 +21,7 @@ const Navbar = () => {
 
         {/* Navigation */}
         <nav>
-          <ul className="hidden md:flex space-x-6">
+          <ul className="hidden md:flex space-x-6 items-center">
             <li>
               <Link to="#home" className="hover:text-gray-300 transition">
                 Home
@@ -47,7 +46,7 @@ const Navbar = () => {
               {/* Log out option */}
               <button
                 onClick={logout}
-                className="hover:text-gray-300 transition"
+                className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-xl hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
                 Log Out
               </button>
